@@ -45,7 +45,7 @@ cd time-management-app
 
 2. Install dependencies
 ```bash
-npm install sqlite3 express-sessions express bcrypt
+npm install sqlite3 express-sessions express bcrypt express-ejs-layouts
 ```
 
 3. Configure environment variables
