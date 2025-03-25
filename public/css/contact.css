@@ -1,20 +1,16 @@
-.faq-container{
-
+.faq-container {
 }
 
-.faq-item{
-
+.faq-item {
 }
 
-.faq-question{
-
+.faq-question {
 }
 
-.indicator{
-
+.indicator {
 }
 
-.faq-answer{
+.faq-answer {
     display: none;
 }
 
@@ -22,25 +18,24 @@
     display: block;
 }
 
+.active {
+    display: block;
+}
+
 .contact-options {
 }
 
-.contact-option{
-
+.contact-option {
 }
 
-.contact-form{
-
+.contact-form {
 }
 
-.formgroup{
-
+.formgroup {
 }
 
-.form-control{
-
+.form-control {
 }
 
-.immideat-contact{
-
+.immideat-contact {
 }
