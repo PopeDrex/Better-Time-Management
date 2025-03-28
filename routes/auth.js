@@ -8,7 +8,8 @@ router.get('/login', (req, res) => {
     res.render('login', { 
         title: 'Login',
         error: req.query.error,
-        success: req.query.success
+        success: req.query.success,
+        return: req.query.return,
     });
 });
 
@@ -82,7 +83,14 @@ router.post('/login', async (req, res) => {
         );
         
         console.log(`User ${username} logged in successfully`);
-        
+
+        // check if return requestQuery is not null, and redirect to that page
+        console.log("test if req.return is null");
+        console.log(req.query.return);
+        if (req.query.return)
+        {
+            return res.redirect(req.query.return);
+        }
         // Redirect based on role
         if (user.role === 'admin') {
             return res.redirect('/admin');

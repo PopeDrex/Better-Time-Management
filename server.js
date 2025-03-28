@@ -168,9 +168,9 @@ app.get('/', (req, res) => {
   });
 });
 
-// Contact us page
-app.get('/contact', (req, res) => {
-  res.render('contact', { activePage: 'contact' });
+// Help page
+app.get('/help', (req, res) => {
+  res.render('help', { activePage: 'help' });
 });
 
 // Profile route (protected)

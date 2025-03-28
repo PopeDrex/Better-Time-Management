@@ -1,10 +1,12 @@
-.faq-container {
+.faq-card {
+    margin-bottom: 2rem;
 }
-
 .faq-item {
+    margin-bottom: 1.2rem;
 }
 
 .faq-question {
+    padding-left: 1rem;
 }
 
 .indicator {
@@ -12,6 +14,7 @@
 
 .faq-answer {
     display: none;
+    padding-left: 2rem;
 }
 
 .faq-answer-visible {
@@ -30,6 +33,12 @@
 
 .contact-form {
 }
+.contact-form-hidden {
+    display: none;
+}
+.contact-form-normal {
+    display: block;
+}
 
 .formgroup {
 }
@@ -38,4 +47,8 @@
 }
 
 .immideat-contact {
+}
+
+.button-group{
+    margin-top: 1rem;
 }
