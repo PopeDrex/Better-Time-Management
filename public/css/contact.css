@@ -1,0 +1,45 @@
+.faq-container {
+    
+}
+
+.faq-item {
+    padding: 1.2rem;
+}
+
+.faq-question h4 {
+    
+}
+
+.indicator {
+}
+
+.faq-answer {
+    display: none;
+}
+
+.faq-answer-visible {
+    display: block;
+}
+
+.active {
+    display: block;
+}
+
+.contact-options {
+}
+
+.contact-option {
+}
+
+.contact-form h3{
+    padding: 2rem;
+}
+
+.formgroup {
+}
+
+.form-control {
+}
+
+.immideate-contact {
+}
