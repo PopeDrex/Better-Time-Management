@@ -1,17 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const db = require('../config/sqliteConn');
+const AuthController = require('../controllers/authController');
+const User = require('../model/User');
 
-// GET login page
-router.get('/login', (req, res) => {
-    res.render('login', { 
-        title: 'Login',
-        error: req.query.error,
-        success: req.query.success,
-        return: req.query.return,
-    });
-});
+// Create controller instance
+const authController = new AuthController(User);
 
 // POST login form submission
 router.post('/login', async (req, res) => {
@@ -83,14 +76,7 @@ router.post('/login', async (req, res) => {
         );
         
         console.log(`User ${username} logged in successfully`);
-
-        // check if return requestQuery is not null, and redirect to that page
-        console.log("test if req.return is null");
-        console.log(req.query.return);
-        if (req.query.return)
-        {
-            return res.redirect(req.query.return);
-        }
+        
         // Redirect based on role
         if (user.role === 'admin') {
             return res.redirect('/admin');

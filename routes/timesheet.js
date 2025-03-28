@@ -1,13 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const { formatTime, calculateTimeDiff, formatMinutes } = require('../utils/timeHelpers');
-const TimeEntry = require('../model/TimeEntry');
+const TimesheetController = require('../controllers/timesheetController');
+const Timesheet = require('../model/TimeEntry');
+const verifyJWT = require('../middleware/verifyJWT');
+const verifyRoles = require('../middleware/verifyRoles');
 
-// Clock in route
-router.post('/clock-in', async (req, res) => {
-  // ...existing clock-in logic, but with database operations
-});
+// Create controller instance
+const timesheetController = new TimesheetController(Timesheet);
 
-// Additional timesheet routes...
+// Apply JWT verification to all routes
+router.use(verifyJWT);
+
+// Timesheet routes
+router.get('/', verifyRoles('admin', 'manager'), (req, res) => timesheetController.getAllTimesheets(req, res));
+router.get('/:id', (req, res) => timesheetController.getTimesheetById(req, res));
+router.put('/:id', (req, res) => timesheetController.updateTimesheet(req, res));
+router.post('/:id/approve', verifyRoles('admin', 'manager'), (req, res) => timesheetController.approveTimesheet(req, res));
+router.post('/:id/reject', verifyRoles('admin', 'manager'), (req, res) => timesheetController.rejectTimesheet(req, res));
 
 module.exports = router;

@@ -1,0 +1,74 @@
+<div class="container">
+    <div class="container main-content">
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-user-shield"></i> Help Center
+            </h1>
+            <p class="lead">Find answers to frequently asked questions, or get in contact with our support team</p>
+        </div>
+    </div>
+
+    <div class="card faq-card">
+        <div class="card-header">
+            <h2><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
+        </div>
+        <div class="card-body">
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaqQuestions('faq-a1')" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a1">
+                    <h4>
+                        How do I log my work hours? <span class="indicator">+</span>
+                    </h4>
+                </div>
+                <div class="faq-answer" id="faq-a1" aria-hidden="true">
+                    <p>You can log your work hours by navigating to the Timesheet page after logging in. The system automatically records your login time, and you can manually log your breaks and logout time.</p>
+                    <p><a href="/timesheet" class="btn btn-sm btn-outline-primary mt-2">Go to Timesheet <i class="fas fa-arrow-right"></i></a></p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaqQuestions('faq-a2')" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a2">
+                    <h4>
+                        How many leaves am I eligible for? <span class="indicator">+</span>
+                    </h4>
+                </div>
+                <div class="faq-answer" id="faq-a2" aria-hidden="true">
+                    <p>The leave quota depends on your employment type and duration. Typically, full-time employees are eligible for 25 days of paid leave per year. You can check your exact leave quota on the Apply Leave page.</p>
+                    <p><a href="/leave" class="btn btn-sm btn-outline-primary mt-2">Check Leave Balance <i class="fas fa-arrow-right"></i></a></p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaqQuestions('faq-a3')" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a3">
+                    <h4>How do I apply for a leave? <span class="indicator">+</span></h4>
+                </div>
+                <div class="faq-answer" id="faq-a3" aria-hidden="true">
+                    <p>To apply for a leave, go to the Apply Leave page, check your available leave balance, and click on the "Apply Leave" button. Fill in the required details in the form, including the leave reason and duration, and submit it for approval.</p>
+                    <p><a href="/apply-leave" class="btn btn-sm btn-outline-primary mt-2">Apply for Leave <i class="fas fa-arrow-right"></i></a></p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaqQuestions('faq-a4')" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a4">
+                    <h4>
+                        Can I view my past timesheets? <span class="indicator">+</span>
+                    </h4>
+                </div>
+                <div class="faq-answer" id="faq-a4" aria-hidden="true">
+                    <p>Yes, you can view your past timesheets by going to the Timesheet page and using the period selector to choose weekly, monthly, or yearly views. This will display your timesheet data for the selected period.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaqQuestions('faq-a5')" tabindex="0" role="button" aria-expanded="false" aria-controls="faq-a5">
+                    <h4>
+                        What should I do if I forgot to log my hours? <span class="indicator">+</span>
+                    </h4>
+                </div>
+                <div class="faq-answer" id="faq-a5" aria-hidden="true">
+                    <p>If you forgot to log your hours, please contact your manager or the HR department. They will help you update your timesheet with the correct information.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="/js/help.js"></script>

@@ -56,6 +56,9 @@
                 <label class="form-check-label" for="remember">Remember me</label>
             </div>
 
+            <!-- Add this hidden input to pass the returnUrl to the POST handler -->
+            <input type="hidden" name="returnUrl" value="<%= typeof returnUrl !== 'undefined' ? returnUrl : '/dashboard' %>">
+
             <button type="submit" class="btn btn-primary btn-block">
                 <i class="fas fa-sign-in-alt"></i> Login
             </button>

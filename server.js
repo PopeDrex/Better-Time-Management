@@ -8,9 +8,16 @@ const path = require('path');
 const ejs = require('ejs');
 const expressLayouts = require('express-ejs-layouts');
 
-// Import routes - Move this up before defining any overlapping routes
-const adminRoutes = require('./routes/admin');// Initialize application
+
+// Import models
+const Leave = require('./model/Leave'); // Add this line to import the Leave model
+
+// Import routes
+const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
+const employeeRoutes = require('./routes/employee'); 
+const timesheetRoutes = require('./routes/timesheet');
+const leaveRoutes = require('./routes/leave');
 
 // Initialize application
 const app = express();
@@ -137,8 +144,120 @@ app.use((req, res, next) => {
   next();
 });
 
-// Use auth routes FIRST
-app.use('/', authRoutes);
+// Register routes
+app.use('/api/auth', authRoutes); // For API authentication (JWT tokens)
+app.use('/api/employees', employeeRoutes);
+app.use('/api/timesheets', timesheetRoutes);
+app.use('/api/leaves', leaveRoutes); // Change from '/' to '/api/leaves'
+
+// Login and registration page routes only, not all auth routes
+app.get('/login', (req, res) => {
+  res.render('login', { activePage: 'login', error: req.query.error });
+});
+
+app.get('/register', (req, res) => {
+  res.render('register', { activePage: 'register' });
+});
+
+// Login form submission handler
+app.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const returnUrl = req.body.returnUrl || '/dashboard';
+    
+    // Find user in database
+    const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+    
+    // Check if user exists and password matches
+    if (!user) {
+      return res.render('login', { 
+        activePage: 'login', 
+        error: 'Invalid username or password' 
+      });
+    }
+    
+    // Verify password using bcrypt
+    const bcrypt = require('bcrypt');
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    
+    if (!passwordMatch) {
+      return res.render('login', { 
+        activePage: 'login', 
+        error: 'Invalid username or password' 
+      });
+    }
+    
+    // Set session data
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      name: user.name || username,
+      role: user.role || 'user'
+    };
+    
+    // Redirect to dashboard or requested page
+    res.redirect(returnUrl);
+  } catch (error) {
+    console.error('Login error:', error);
+    res.render('login', { 
+      activePage: 'login', 
+      error: 'An error occurred during login. Please try again.' 
+    });
+  }
+});
+
+// Register form submission handler
+app.post('/register', async (req, res) => {
+  try {
+    const { username, password, confirmPassword, name } = req.body;
+    
+    // Validate input
+    if (!username || !password) {
+      return res.render('register', { 
+        activePage: 'register', 
+        error: 'Username and password are required' 
+      });
+    }
+    
+    if (password !== confirmPassword) {
+      return res.render('register', { 
+        activePage: 'register', 
+        error: 'Passwords do not match' 
+      });
+    }
+    
+    // Check if username already exists
+    const existingUser = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+    if (existingUser) {
+      return res.render('register', { 
+        activePage: 'register', 
+        error: 'Username already exists' 
+      });
+    }
+    
+    // Hash password
+    const bcrypt = require('bcrypt');
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Insert new user
+    await db.run(
+      'INSERT INTO users (username, password, name, role, active) VALUES (?, ?, ?, ?, ?)',
+      [username, hashedPassword, name || username, 'user', 1]
+    );
+    
+    // Redirect to login page with success message
+    res.render('login', { 
+      activePage: 'login', 
+      success: 'Registration successful! You can now log in.' 
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.render('register', { 
+      activePage: 'register', 
+      error: 'An error occurred during registration. Please try again.' 
+    });
+  }
+});
 
 // ============================================================================
 // AUTHENTICATION ROUTES
@@ -173,6 +292,14 @@ app.get('/help', (req, res) => {
   res.render('help', { activePage: 'help' });
 });
 
+// FAQ page
+app.get('/faq', (req, res) => {
+  res.render('faq', { 
+    isAuthenticated: req.session.isAuthenticated || false,
+    activePage: 'faq'
+  });
+});
+
 // Profile route (protected)
 app.get('/profile', checkAuth, (req, res) => {
   res.render('profile', { 
@@ -182,16 +309,23 @@ app.get('/profile', checkAuth, (req, res) => {
 });
 
 // Apply leave page (protected)
-app.get('/apply-leave', checkAuth, (req, res) => {
-  // Mock data
-  const leaveData = {
-    totalQuota: 25,
-    usedLeaves: 15
-  };
-  res.render('apply-leave', { 
-    leaveData, 
-    activePage: 'apply-leave' 
-  });
+app.get('/apply-leave', checkAuth, async (req, res) => {
+  try {
+    const employeeId = req.session.user.id;
+    const leaveData = await Leave.getLeaveSummary(employeeId);
+    
+    res.render('apply-leave', { 
+      leaveData, 
+      activePage: 'apply-leave' 
+    });
+  } catch (error) {
+    console.error('Error fetching leave data:', error);
+    res.render('apply-leave', { 
+      errorMessage: 'Failed to load leave data', 
+      leaveData: { totalQuota: 0, usedLeaves: 0, requests: [] },
+      activePage: 'apply-leave' 
+    });
+  }
 });
 
 // Leave request form (protected)
@@ -206,6 +340,48 @@ app.get('/leave-request', checkAuth, (req, res) => {
     userData, 
     activePage: 'leave-request' 
   });
+});
+
+// Handle leave submission
+app.post('/submit-leave', checkAuth, async (req, res) => {
+  try {
+    const { startDate, endDate, leaveType, reason } = req.body;
+    const employeeId = req.session.user.id;
+    
+    // Calculate business days between the dates
+    const calculateBusinessDays = (start, end) => {
+      let count = 0;
+      let currentDate = new Date(start);
+      const endDate = new Date(end);
+      
+      while (currentDate <= endDate) {
+        const dayOfWeek = currentDate.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          count++;
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      return count;
+    };
+    
+    const days = calculateBusinessDays(startDate, endDate);
+    
+    // Create the leave request
+    await Leave.create({
+      employeeId,
+      startDate,
+      endDate,
+      leaveType,
+      reason,
+      days
+    });
+    
+    res.redirect('/apply-leave?success=Your leave request has been submitted successfully');
+  } catch (error) {
+    console.error('Error submitting leave request:', error);
+    res.redirect('/apply-leave?error=Failed to submit leave request');
+  }
 });
 
 // Use admin routes

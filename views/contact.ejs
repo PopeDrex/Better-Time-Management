@@ -1,0 +1,133 @@
+<div class="container">
+    <div class="container main-content">
+        <div class="page-header text-center">
+            <h1><i class="fas fa-envelope-open-text"></i> Contact Us</h1>
+            <p class="lead">If you can't find any help in the FAQ, contact us here!</p>
+        </div>
+    </div>
+    
+    <!-- Contact Section -->
+    <div class="features-grid" id="contact-grid">
+        <div class="feature-card" id="contact-form">
+            <div class="contact-form-normal" id="contact-form-normal">
+                <h3><i class="fas fa-paper-plane"></i> Other Questions</h3>
+                <p>Have a question that's not listed in the FAQ? Send us a message and we'll get back to you.</p>
+                <a href="#" class="btn btn-primary" onclick="return showContactForm();" aria-label="Show contact form">
+                    Contact form <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="contact-form-hidden" id="contact-form-hidden">
+                <h3><i class="fas fa-envelope"></i> Send Us a Message</h3>
+                <form id="support-contact-form">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" class="form-control" required>
+                    </div>	
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="query">Your Query</label>
+                        <textarea id="query" class="form-control" rows="5" required></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Submit
+                        </button>
+                        <a href="#" class="btn btn-secondary" onclick="return hideContactForm();" aria-label="Hide contact form">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="feature-card">
+            <h3><i class="fas fa-headset"></i> Immediate Contact</h3>
+                
+            <% if (typeof isAuthenticated !== 'undefined' && isAuthenticated) { %>
+                <div class="immediate-contact-info">
+                    <p>
+                        <i class="fas fa-envelope"></i> <strong>Support Team:</strong> support@timemanager.com
+                    </p>
+                    <p>
+                        <i class="fas fa-phone"></i> <strong>Phone:</strong> +1 (555) 123-4567
+                    </p>
+                    <p>
+                        <i class="fas fa-clock"></i> <strong>Hours:</strong> Monday to Friday, 9:00 AM - 5:00 PM
+                    </p>
+                </div>
+            <% } else { %>
+                <div class="auth-required-message">
+                    <p>You need to be logged in to view admin contact details.</p>
+                    <a href="/login?return=/help" class="btn btn-primary mt-2">
+                        <i class="fas fa-sign-in-alt"></i> Login to Your Account
+                    </a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script src="/js/help.js"></script>
+<script>
+// Additional JavaScript for contact page
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize FAQ items
+    initFAQ();
+});
+
+function showContactOptionsForm() {
+    const contactForm = document.getElementById("contact-option-form-content");
+    const contactText = document.getElementById("contact-option-form");
+    const featureGrid = document.getElementById("contact-options-grid");
+    
+    // Instant display with minimal animation delay
+    contactForm.style.display = 'block';
+    contactText.style.opacity = '0';
+    contactText.style.transform = 'translateY(-20px)';
+    
+    // Minimize delay
+    setTimeout(() => {
+        contactText.style.display = 'none';
+        featureGrid.style.gridTemplateColumns = "repeat(auto-fit, minmax(100%, 1fr))";
+        contactForm.style.opacity = '1';
+        contactForm.style.transform = 'translateY(0)';
+        const firstInput = contactForm.querySelector('input');
+        if (firstInput) firstInput.focus();
+    }, 50); // Ultra-fast transition
+    
+    return false;
+}
+
+function hideContactOptionsForm() {
+    const contactForm = document.getElementById("contact-option-form-content");
+    const contactText = document.getElementById("contact-option-form");
+    const featureGrid = document.getElementById("contact-options-grid");
+    
+    contactForm.style.opacity = '0';
+    contactForm.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        contactForm.style.display = 'none';
+        contactText.style.display = 'block';
+        contactText.style.opacity = '0';
+        contactText.style.transform = 'translateY(-20px)';
+        featureGrid.style.gridTemplateColumns = "1fr 1fr";
+        
+        setTimeout(() => {
+            contactText.style.opacity = '1';
+            contactText.style.transform = 'translateY(0)';
+        }, 50);
+    }, 100);
+    
+    return false;
+}
+</script>

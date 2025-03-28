@@ -583,7 +583,7 @@ document.querySelectorAll('.delete-user').forEach(button => {
 document.getElementById('confirmDelete').addEventListener('click', function() {
     const userId = document.getElementById('deleteUserId').value;
     
-    fetch(`/api/users/${userId}`, {
+    fetch(`/admin/api/users/${userId}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json'

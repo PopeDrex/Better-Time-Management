@@ -1,7 +1,7 @@
 <div class="container">
-    <h1 class="text-center mb-2">Apply for Leave</h1>
+    <h1 class="text-center mb-4">Apply for Leave</h1>
     
-    <div class="leave-stats">
+    <div class="leave-stats mb-4">
         <div class="leave-stat-card">
             <h4>Total Leave Quota</h4>
             <h3><%= leaveData.totalQuota %> days</h3>
@@ -18,19 +18,212 @@
         </div>
     </div>
     
-    <div class="text-center mb-2">
-        <a href="/leave-request" id="apply-leave-btn" class="btn btn-primary">Apply for Leave</a>
+    <!-- Add actual leave request form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Request Leave</h2>
+        </div>
+        <div class="card-body">
+            <% if (locals.errorMessage) { %>
+                <div class="alert alert-danger"><%= errorMessage %></div>
+            <% } %>
+            <% if (locals.successMessage) { %>
+                <div class="alert alert-success"><%= successMessage %></div>
+            <% } %>
+            
+            <form id="leaveRequestForm" action="/submit-leave" method="POST">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="startDate" name="startDate" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="endDate" name="endDate" required>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="leaveType" class="form-label">Leave Type</label>
+                    <select class="form-select" id="leaveType" name="leaveType" required>
+                        <option value="">Select leave type</option>
+                        <option value="annual">Annual Leave</option>
+                        <option value="sick">Sick Leave</option>
+                        <option value="personal">Personal Leave</option>
+                        <option value="unpaid">Unpaid Leave</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="reason" class="form-label">Reason for Leave</label>
+                    <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div id="daysRequested">Days requested: <span id="totalDays">0</span></div>
+                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                </div>
+            </form>
+        </div>
     </div>
     
     <div class="card">
-        <h2>Leave Policy</h2>
-        <p>Please review our leave policy before applying for a leave:</p>
-        <ul>
-            <li>Each employee is eligible for <%= leaveData.totalQuota %> days of paid leave per year.</li>
-            <li>Leave requests must be submitted at least 3 days in advance for approval.</li>
-            <li>Emergency leaves require appropriate documentation.</li>
-            <li>Unused leaves cannot be carried forward to the next year.</li>
-            <li>If you have used all available leaves, you can apply for unpaid leave with manager approval.</li>
-        </ul>
+        <div class="card-header">
+            <h2>Leave Status</h2>
+        </div>
+        <div class="card-body">
+            <% if (leaveData.requests && leaveData.requests.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Type</th>
+                            <th>Days</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% leaveData.requests.forEach(request => { %>
+                            <tr>
+                                <td><%= request.start_date ? new Date(request.start_date).toLocaleDateString() : 
+                                      (request.startDate ? new Date(request.startDate).toLocaleDateString() : 'N/A') %></td>
+                                <td><%= request.end_date ? new Date(request.end_date).toLocaleDateString() : 
+                                      (request.endDate ? new Date(request.endDate).toLocaleDateString() : 'N/A') %></td>
+                                <td><%= request.leave_type || request.leaveType || 'N/A' %></td>
+                                <td><%= request.days || 'N/A' %></td>
+                                <td>
+                                    <span class="badge <%= 
+                                        request.status === 'approved' ? 'bg-success' : 
+                                        request.status === 'rejected' ? 'bg-danger' : 'bg-warning'
+                                    %>">
+                                        <%= request.status || 'pending' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <% if (!request.status || request.status === 'pending') { %>
+                                        <button class="btn btn-sm btn-danger cancel-leave" 
+                                                data-id="<%= request.id %>">Cancel</button>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p class="text-center">No leave requests found.</p>
+            <% } %>
+        </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const totalDaysSpan = document.getElementById('totalDays');
+        const leavesRemaining = parseInt(document.getElementById('leaves-remaining').textContent);
+        
+        // Set minimum date to today
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayFormatted = `${yyyy}-${mm}-${dd}`;
+        
+        startDateInput.min = todayFormatted;
+        endDateInput.min = todayFormatted;
+        
+        // Calculate business days between two dates (excluding weekends)
+        function calculateBusinessDays(startDate, endDate) {
+            let count = 0;
+            let currentDate = new Date(startDate);
+            const end = new Date(endDate);
+            
+            while (currentDate <= end) {
+                const dayOfWeek = currentDate.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    count++;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            return count;
+        }
+        
+        // Update the days calculation when dates change
+        function updateDaysCalculation() {
+            if (startDateInput.value && endDateInput.value) {
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+                
+                if (endDate < startDate) {
+                    endDateInput.value = startDateInput.value;
+                    totalDaysSpan.textContent = '1';
+                    return;
+                }
+                
+                const days = calculateBusinessDays(startDate, endDate);
+                totalDaysSpan.textContent = days;
+                
+                // Warn if requested days exceed remaining balance
+                if (days > leavesRemaining) {
+                    totalDaysSpan.classList.add('text-danger');
+                    totalDaysSpan.classList.add('fw-bold');
+                } else {
+                    totalDaysSpan.classList.remove('text-danger');
+                    totalDaysSpan.classList.remove('fw-bold');
+                }
+            }
+        }
+        
+        startDateInput.addEventListener('change', updateDaysCalculation);
+        endDateInput.addEventListener('change', updateDaysCalculation);
+        
+        // Form validation
+        document.getElementById('leaveRequestForm').addEventListener('submit', function(e) {
+            const days = parseInt(totalDaysSpan.textContent);
+            
+            if (days <= 0) {
+                e.preventDefault();
+                alert('Please select a valid date range.');
+                return false;
+            }
+            
+            if (days > leavesRemaining) {
+                if (!confirm('The requested leave exceeds your remaining balance. This will be submitted as unpaid leave. Continue?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+        
+        // Handle cancel leave requests
+        document.querySelectorAll('.cancel-leave').forEach(button => {
+            button.addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-id');
+                if (confirm('Are you sure you want to cancel this leave request?')) {
+                    fetch(`/cancel-leave/${leaveId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Failed to cancel leave: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while canceling the leave request.');
+                    });
+                }
+            });
+        });
+    });
+</script>

@@ -11,7 +11,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <% if (typeof activePage !== 'undefined' && activePage === 'help') { %><link rel="stylesheet" href="/css/help.css"><% } %>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        main {
+            flex: 1 0 auto;
+        }
+        
+        footer {
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -69,25 +88,14 @@
                             </div>
                         </div>
                     </li>
-                <!-- <% } else { %>
+                <% } else { %>
                     <!-- Show login button for non-authenticated users -->
-                    <!--<li class="nav-item login-nav-item">
+                    <!-- <li class="nav-item login-nav-item">
                         <a href="/login" class="nav-link login-nav-link <%= (typeof activePage !== 'undefined' && activePage === 'login') ? 'active' : '' %>">
                             <i class="fas fa-sign-in-alt"></i> Login
                         </a>
-                    </li>-->
-                    <li class="nav-item">
-                        <a href="/login" class="nav-link <%= (typeof activePage !== 'undefined' && activePage === 'login') ? 'active' : '' %>">
-                        <i class="fas fa-arrow-right-to-bracket"></i> Login
-                    </a>
-                </li>
-                <!-- <% } %> -->
-                
-                <li class="nav-item">
-                    <a href="/help" class="nav-link <%= (typeof activePage !== 'undefined' && activePage === 'help') ? 'active' : '' %>">
-                        <i class="fas fa-envelope"></i> Help
-                    </a>
-                </li>
+                    </li> -->
+                <!-- <% } %> --> 
             </ul>
         </div>
     </nav>
@@ -124,7 +132,7 @@
                         <% } %>
                         <li><a href="/contact"><i class="fas fa-envelope"></i> Contact</a></li>
                         <li><a href="#"><i class="fas fa-info-circle"></i> About</a></li>
-                        <li><a href="#"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                        <li><a href="/faq"><i class="fas fa-question-circle"></i> FAQ</a></li>
                     </ul>
                 </div>
                 

@@ -1,8 +1,3 @@
-/**
- * Admin Routes
- * Server-side controller for admin-related endpoints
- */
-
 const express = require('express');
 const router = express.Router();
 const db = require('../config/sqliteConn');
@@ -251,12 +246,12 @@ router.get('/', checkAdmin, async (req, res) => {
     }
 });
 
-/**
- * Create new user API endpoint
- */
-router.post('/api/users', checkAdmin, async (req, res) => {
-    try {
-        const { username, fullName, email, role, password } = req.body;
+    /**
+     * Create new user API endpoint
+     */
+    router.post('/api/users', checkAdmin, async (req, res) => {
+        try {
+            const { username, fullName, email, role, password } = req.body;
         
         // Validate required fields
         if (!username || !fullName || !email || !role || !password) {
