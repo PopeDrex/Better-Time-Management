@@ -26,6 +26,8 @@ app.use(express.urlencoded({ extended: true }));
 // ============================================================================
 
 // View engine setup
+app.use(expressLayouts);
+app.set('layout', 'layout');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));  // Use 'views' (plural)
 app.use(expressLayouts);

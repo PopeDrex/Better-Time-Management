@@ -1,0 +1,32 @@
+{
+  "name": "bcrypt",
+  "description": "A bcrypt library for NodeJS.",
+  "main": "./bcrypt",
+  "version": "5.1.1",
+  "author": "Nick Campbell (https://github.com/ncb000gt)",
+  "engines": {
+    "node": ">= 10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kelektiv/node.bcrypt.js.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@mapbox/node-pre-gyp": "^1.0.11",
+    "node-addon-api": "^5.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2"
+  },
+  "binary": {
+    "module_name": "bcrypt_lib",
+    "module_path": "./lib/binding/napi-v{napi_build_version}",
+    "package_name": "{module_name}-v{version}-napi-v{napi_build_version}-{platform}-{arch}-{libc}.tar.gz",
+    "host": "https://github.com",
+    "remote_path": "kelektiv/node.bcrypt.js/releases/download/v{version}",
+    "napi_versions": [
+      3
+    ]
+  }
+}

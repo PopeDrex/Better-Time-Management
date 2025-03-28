@@ -2,19 +2,6 @@
  * Admin Dashboard Client-Side JavaScript
  * Organized in a modular pattern for better maintainability
  */
-
-// Main initialization when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Clean up any lingering modal backdrops first
-    Utils.cleanupModals();
-    
-    // Initialize all modules
-    UI.init();
-    UserManagement.init();
-    EmployeeActivity.init();
-    Pagination.init();
-});
-
 /**
  * Utility functions for common operations
  */
@@ -409,5 +396,398 @@ const Pagination = {
 // Ensure modals are cleaned up before page navigation
 window.addEventListener('beforeunload', function() {
     Utils.cleanupModals();
+});
+
+// Password toggle visibility
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        passwordInput.type = 'password';
+        this.innerHTML = '<i class="fas fa-eye"></i>';
+    }
+});
+
+// Password generator
+document.getElementById('generatePassword').addEventListener('click', function() {
+    const length = 12;
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+        password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    document.getElementById('password').value = password;
+    document.getElementById('password').type = 'text';
+    document.getElementById('togglePassword').innerHTML = '<i class="fas fa-eye-slash"></i>';
+});
+
+// Edit user modal functionality
+document.querySelectorAll('.edit-user').forEach(button => {
+    button.addEventListener('click', function() {
+        // Use data attributes instead of API call
+        const userId = this.dataset.userId;
+        const username = this.dataset.username;
+        const name = this.dataset.name;
+        const email = this.dataset.email;
+        const role = this.dataset.role;
+        const active = this.dataset.active;
+        
+        // Populate the form
+        document.getElementById('editUserId').value = userId;
+        document.getElementById('editUsername').value = username;
+        document.getElementById('editFullName').value = name;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value = role;
+        document.getElementById('editStatus').value = active;
+        
+        // Show the modal
+        const editUserModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+        editUserModal.show();
+    });
+});
+
+// Also fix the delete user functionality
+document.getElementById('confirmDelete').addEventListener('click', function() {
+    const userId = document.getElementById('deleteUserId').value;
+    
+    // Use the correct API endpoint based on your add user form
+    fetch(`/admin/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Close modal and refresh table
+            const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteUserModal'));
+            deleteModal.hide();
+            
+            // Remove the row from the table
+            document.querySelector(`tr[data-user-id="${userId}"]`).remove();
+            
+            // Show success message using your Utils function if available
+            if (typeof Utils !== 'undefined' && Utils.showAlert) {
+                Utils.showAlert('User deleted successfully', 'success');
+            } else {
+                alert('User deleted successfully');
+            }
+        } else {
+            throw new Error('Failed to delete user');
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting user:', error);
+        if (typeof Utils !== 'undefined' && Utils.showAlert) {
+            Utils.showAlert('Failed to delete user', 'danger');
+        } else {
+            alert('Failed to delete user');
+        }
+    });
+});
+
+// Add functionality for edit form submission
+document.getElementById('editUserForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const userId = document.getElementById('editUserId').value;
+    const userData = {
+        username: document.getElementById('editUsername').value,
+        name: document.getElementById('editFullName').value,
+        email: document.getElementById('editEmail').value,
+        role: document.getElementById('editRole').value,
+        active: document.getElementById('editStatus').value === 'active'
+    };
+    
+    // Check if password reset is requested
+    if (document.getElementById('resetPassword').checked) {
+        userData.password = document.getElementById('newPassword').value;
+    }
+    
+    // Use the correct API endpoint
+    fetch(`/admin/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+    })
+    .then(response => {
+        if (response.ok) {
+            // Close modal
+            const editModal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+            editModal.hide();
+            
+            // Show success message
+            if (typeof Utils !== 'undefined' && Utils.showAlert) {
+                Utils.showAlert('User updated successfully', 'success');
+            } else {
+                alert('User updated successfully');
+            }
+            
+            // Reload page to refresh data
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            throw new Error('Failed to update user');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user:', error);
+        if (typeof Utils !== 'undefined' && Utils.showAlert) {
+            Utils.showAlert('Failed to update user', 'danger');
+        } else {
+            alert('Failed to update user');
+        }
+    });
+});
+
+// Toggle visibility of edit password field
+document.getElementById('toggleEditPassword')?.addEventListener('click', function() {
+    const passwordInput = document.getElementById('newPassword');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        passwordInput.type = 'password';
+        this.innerHTML = '<i class="fas fa-eye"></i>';
+    }
+});
+
+// Reset password toggle in edit user form
+document.getElementById('resetPassword').addEventListener('change', function() {
+    const passwordFields = document.querySelector('.password-reset-fields');
+    if (this.checked) {
+        passwordFields.style.display = 'block';
+    } else {
+        passwordFields.style.display = 'none';
+    }
+});
+
+// Delete user confirmation
+document.querySelectorAll('.delete-user').forEach(button => {
+    button.addEventListener('click', function() {
+        const userId = this.dataset.userId;
+        const userName = this.dataset.userName;
+        
+        document.getElementById('deleteUserId').value = userId;
+        document.getElementById('deleteUserName').textContent = userName;
+        
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+        deleteModal.show();
+    });
+});
+
+// Confirm user deletion
+document.getElementById('confirmDelete').addEventListener('click', function() {
+    const userId = document.getElementById('deleteUserId').value;
+    
+    fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Close modal and refresh table
+            const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteUserModal'));
+            deleteModal.hide();
+            
+            // Remove the row from the table
+            document.querySelector(`tr[data-user-id="${userId}"]`).remove();
+            
+            // Show success message
+            alert('User deleted successfully');
+        } else {
+            throw new Error('Failed to delete user');
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting user:', error);
+        alert('Failed to delete user');
+    });
+});
+
+// Bulk selection handling
+document.getElementById('selectAllUsers').addEventListener('change', function() {
+    const isChecked = this.checked;
+    document.querySelectorAll('.user-select').forEach(checkbox => {
+        checkbox.checked = isChecked;
+    });
+    
+    // Enable/disable bulk actions button
+    document.getElementById('bulkActionDropdown').querySelector('button').disabled = !isChecked;
+});
+
+// Individual checkbox selection handling
+document.querySelectorAll('.user-select').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const anyChecked = Array.from(document.querySelectorAll('.user-select')).some(cb => cb.checked);
+        document.getElementById('bulkActionDropdown').querySelector('button').disabled = !anyChecked;
+        
+        // Update "select all" checkbox
+        const allChecked = Array.from(document.querySelectorAll('.user-select')).every(cb => cb.checked);
+        document.getElementById('selectAllUsers').checked = allChecked;
+    });
+});
+
+// Export users to CSV
+document.getElementById('exportUsersCsv').addEventListener('click', function() {
+    // Get all visible users from the table
+    const users = [];
+    document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+        if (row.style.display !== 'none') {
+            const cells = row.querySelectorAll('td');
+            if (cells.length > 1) { // Skip message rows
+                users.push({
+                    username: cells[1].textContent,
+                    name: cells[2].textContent,
+                    email: cells[3].textContent,
+                    role: cells[4].textContent.trim(),
+                    department: cells[5].textContent,
+                    status: cells[6].textContent.trim(),
+                    lastLogin: cells[7].textContent
+                });
+            }
+        }
+    });
+    
+    if (users.length === 0) {
+        alert('No users to export');
+        return;
+    }
+    
+    // Create CSV content
+    const headers = ['Username', 'Full Name', 'Email', 'Role', 'Department', 'Status', 'Last Login'];
+    let csvContent = headers.join(',') + '\n';
+    
+    users.forEach(user => {
+        const row = [
+            `"${user.username}"`,
+            `"${user.name}"`,
+            `"${user.email}"`,
+            `"${user.role}"`,
+            `"${user.department}"`,
+            `"${user.status}"`,
+            `"${user.lastLogin}"`
+        ];
+        csvContent += row.join(',') + '\n';
+    });
+    
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users_export_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+// User search functionality
+document.getElementById('userSearchInput').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+        const username = row.cells[1]?.textContent.toLowerCase() || '';
+        const name = row.cells[2]?.textContent.toLowerCase() || '';
+        const email = row.cells[3]?.textContent.toLowerCase() || '';
+        
+        if (username.includes(searchTerm) || name.includes(searchTerm) || email.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// User role and status filters
+document.getElementById('userRoleFilter').addEventListener('change', filterUsers);
+document.getElementById('userStatusFilter').addEventListener('change', filterUsers);
+
+function filterUsers() {
+    const roleFilter = document.getElementById('userRoleFilter').value;
+    const statusFilter = document.getElementById('userStatusFilter').value;
+    
+    document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+        const userRole = row.dataset.role;
+        const userStatus = row.dataset.status;
+        
+        const roleMatch = roleFilter === 'all' || userRole === roleFilter;
+        const statusMatch = statusFilter === 'all' || userStatus === statusFilter;
+        
+        if (roleMatch && statusMatch) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Add this function to your existing code or modify the modal initialization
+
+// Function to fix modal scrolling issues
+function fixModalScrolling(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Fix scrolling when modal opens
+    modal.addEventListener('shown.bs.modal', function() {
+        // Make sure the modal body has scrolling capability
+        const modalBody = this.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.style.maxHeight = 'calc(100vh - 200px)';
+            modalBody.style.overflowY = 'auto';
+        }
+        
+        // Ensure body keeps the modal-open class (sometimes it gets removed)
+        document.body.classList.add('modal-open');
+    });
+    
+    // Fix backdrop issues on close
+    modal.addEventListener('hidden.bs.modal', function() {
+        // Small delay to let Bootstrap's built-in handlers run first
+        setTimeout(() => {
+            // Remove leftover backdrop if any
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            
+            // Only remove modal-open class if no other modals are visible
+            const visibleModals = document.querySelectorAll('.modal.show');
+            if (visibleModals.length === 0) {
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            }
+        }, 50);
+    });
+}
+
+// Apply this fix to your modals
+document.addEventListener('DOMContentLoaded', function() {
+    fixModalScrolling('addUserModal');
+    fixModalScrolling('editUserModal');
+    fixModalScrolling('deleteUserModal');
+    
+    // Add CSS for better modal sizing
+    const style = document.createElement('style');
+    style.textContent = `
+        .modal-dialog {
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-content {
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-body {
+            overflow-y: auto;
+        }
+    `;
+    document.head.appendChild(style);
 });
 

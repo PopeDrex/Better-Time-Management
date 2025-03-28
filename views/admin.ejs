@@ -1,429 +1,536 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Timesheets</title>
-    <link rel="stylesheet" href="/css/admin.css">
-</head>
-<body>
-
-    <!-- Page specific styles -->
-    <link rel="stylesheet" href="/css/admin.css">
+<link rel="stylesheet" href="/css/admin.css">
 
     <div class="container main-content">
+        <!-- Your existing admin content goes here without the backticks -->
         <div class="page-header">
             <h1><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
-            <p class="lead">Manage employee timesheets and track compliance</p>
+        <p class="lead">Manage employee timesheets and track compliance</p>
+    </div>
+    
+    <div class="admin-controls">
+        <div class="filter-controls">
+            <label for="employeeFilter">
+                <i class="fas fa-user-friends"></i> Filter by Employee:
+            </label>
+            <select id="employeeFilter" class="form-select">
+                <option value="all">All Employees</option>
+            </select>
+            
+            <label for="statusFilter">
+                <i class="fas fa-tasks"></i> Filter by Status:
+            </label>
+            <select id="statusFilter" class="form-select">
+                <option value="all">All Status</option>
+                <option value="missing">Missing</option>
+                <option value="submitted">Submitted</option>
+                <option value="leave">On Leave</option>
+            </select>
+            
+            <label for="dateRange">
+                <i class="fas fa-calendar"></i> Date Range:
+            </label>
+            <div class="date-range-inputs">
+                <input type="date" id="startDate" class="form-control">
+                <input type="date" id="endDate" class="form-control">
+            </div>
+            
+            <button id="applyFilters" class="btn btn-primary">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
         </div>
         
-        <div class="admin-controls">
-            <div class="filter-controls">
-                <label for="employeeFilter">
-                    <i class="fas fa-user-friends"></i> Filter by Employee:
-                </label>
-                <select id="employeeFilter" class="form-select">
-                    <option value="all">All Employees</option>
-                </select>
-                
-                <label for="statusFilter">
-                    <i class="fas fa-tasks"></i> Filter by Status:
-                </label>
-                <select id="statusFilter" class="form-select">
-                    <option value="all">All Status</option>
-                    <option value="missing">Missing</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="leave">On Leave</option>
-                </select>
-                
-                <label for="dateRange">
-                    <i class="fas fa-calendar-alt"></i> Date Range:
-                </label>
-                <div class="date-range-inputs">
-                    <input type="date" id="startDate" class="form-control">
-                    <input type="date" id="endDate" class="form-control">
+        <div class="summary-container">
+            <div class="summary-box missing">
+                <div class="summary-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                
-                <button id="applyFilters" class="btn btn-primary">
-                    <i class="fas fa-filter"></i> Apply Filters
-                </button>
-            </div>
-            
-            <div class="summary-container">
-                <div class="summary-box missing">
-                    <div class="summary-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3>Missing Timesheets</h3>
-                        <p id="missingCount">0</p>
-                    </div>
-                </div>
-                <div class="summary-box employees">
-                    <div class="summary-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3>Total Employees</h3>
-                        <p id="employeeCount">0</p>
-                    </div>
-                </div>
-                <div class="summary-box hours">
-                    <div class="summary-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3>Avg. Hours/Day</h3>
-                        <p id="avgHours">0</p>
-                    </div>
+                <div class="summary-content">
+                    <h3>Missing Timesheets</h3>
+                    <p id="missingCount">0</p>
                 </div>
             </div>
-            
-            <div class="summary-container mb-4">
-                <div class="summary-box present">
-                    <div class="summary-icon">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3>Present Today</h3>
-                        <p id="presentCount">
-                            <%= employeeActivity.filter(e => e.status === 'checked-in' && !e.onLeave).length %>
-                        </p>
-                    </div>
+            <div class="summary-box employees">
+                <div class="summary-icon">
+                    <i class="fas fa-users"></i>
                 </div>
-                <div class="summary-box on-break">
-                    <div class="summary-icon">
-                        <i class="fas fa-coffee"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3>On Break</h3>
-                        <p id="breakCount">
-                            <%= employeeActivity.filter(e => e.breakStatus === 'on-break').length %>
-                        </p>
-                    </div>
+                <div class="summary-content">
+                    <h3>Total Employees</h3>
+                    <p id="employeeCount">0</p>
                 </div>
-                <div class="summary-box absent">
-                    <div class="summary-icon">
-                        <i class="fas fa-user-slash"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3>Absent / Missing</h3>
-                        <p id="absentCount">
-                            <%= employeeActivity.filter(e => e.missing).length %>
-                        </p>
-                    </div>
+            </div>
+            <div class="summary-box hours">
+                <div class="summary-icon">
+                    <i class="fas fa-clock"></i>
                 </div>
-                <div class="summary-box on-leave">
-                    <div class="summary-icon">
-                        <i class="fas fa-umbrella-beach"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3>On Leave</h3>
-                        <p id="leaveCount">
-                            <%= employeeActivity.filter(e => e.onLeave).length %>
-                        </p>
-                    </div>
+                <div class="summary-content">
+                    <h3>Avg. Hours/Day</h3>
+                    <p id="avgHours">0</p>
                 </div>
             </div>
         </div>
         
-             <!-- Replace the current Employee Activity Section with this optimized version -->
-             <div class="card mb-4">
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-user-clock"></i> Employee Activity Monitor</h5>
-                    <div class="d-flex gap-2">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" id="employeeSearchInput" class="form-control form-control-sm" 
-                                placeholder="Search employee...">
+        <div class="summary-container mb-4">
+            <div class="summary-box present">
+                <div class="summary-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>Present Today</h3>
+                    <p id="presentCount">
+                        <%= employeeActivity.filter(e => e.status === 'checked-in' && !e.onLeave).length %>
+                    </p>
+                </div>
+            </div>
+            <div class="summary-box on-break">
+                <div class="summary-icon">
+                    <i class="fas fa-coffee"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>On Break</h3>
+                    <p id="breakCount">
+                        <%= employeeActivity.filter(e => e.breakStatus === 'on-break').length %>
+                    </p>
+                </div>
+            </div>
+            <div class="summary-box absent">
+                <div class="summary-icon">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>Absent / Missing</h3>
+                    <p id="absentCount">
+                        <%= employeeActivity.filter(e => e.missing).length %>
+                    </p>
+                </div>
+            </div>
+            <div class="summary-box on-leave">
+                <div class="summary-icon">
+                    <i class="fas fa-umbrella-beach"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>On Leave</h3>
+                    <p id="leaveCount">
+                        <%= employeeActivity.filter(e => e.onLeave).length %>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+         <!-- Replace the current Employee Activity Section with this optimized version -->
+         <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <div class="row align-items-center">
+                    <div class="col-md-4 mb-2 mb-md-0">
+                        <h5 class="mb-0"><i class="fas fa-user-clock"></i> Employee Activity Monitor</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                            <div class="input-group input-group-sm" style="max-width: 250px;">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" id="employeeSearchInput" class="form-control" 
+                                    placeholder="Search employee...">
+                            </div>
+                            <select id="activityFilter" class="form-select form-select-sm" style="width: auto;">
+                                <option value="all">All Status</option>
+                                <option value="present">Present</option>
+                                <option value="break">On Break</option>
+                                <option value="absent">Missing/Absent</option>
+                                <option value="leave">On Leave</option>
+                            </select>
+                            <button class="btn btn-sm btn-outline-light" id="refreshActivityBtn">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
                         </div>
-                        <select id="activityFilter" class="form-select form-select-sm">
-                            <option value="all">All Status</option>
-                            <option value="present">Present</option>
-                            <option value="break">On Break</option>
-                            <option value="absent">Missing/Absent</option>
-                            <option value="leave">On Leave</option>
-                        </select>
-                        <button class="btn btn-sm btn-outline-light" id="refreshActivityBtn">
-                            <i class="fas fa-sync-alt"></i> Refresh
-                        </button>
                     </div>
                 </div>
-                <div class="card-body">
-                    <!-- Tabs for different views -->
-                    <ul class="nav nav-tabs mb-3" id="activityViewTabs">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="table-tab" data-bs-toggle="tab" href="#tableView">
-                                <i class="fas fa-table"></i> Table View
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="grid-tab" data-bs-toggle="tab" href="#gridView">
-                                <i class="fas fa-th"></i> Grid View
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <div class="tab-content">
-                        <!-- Table View -->
-                        <div class="tab-pane fade show active" id="tableView">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover" id="employeeActivityTable">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th><i class="fas fa-user"></i> Employee</th>
-                                            <th><i class="fas fa-info-circle"></i> Status</th>
-                                            <th><i class="fas fa-sign-in-alt"></i> Check-in</th>
-                                            <th><i class="fas fa-hourglass-half"></i> Duration</th>
-                                            <th><i class="fas fa-pause-circle"></i> Break Status</th>
-                                            <th><i class="fas fa-cogs"></i> Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="activityTableBody">
-                                        <% employeeActivity.forEach(employee => { %>
-                                            <tr class="<%= employee.missing ? 'table-danger' : (employee.onLeave ? 'table-secondary' : (employee.breakStatus === 'on-break' ? 'table-info' : '')) %>"
-                                                data-status="<%= employee.onLeave ? 'leave' : (employee.status === 'checked-in' ? (employee.breakStatus === 'on-break' ? 'break' : 'present') : 'absent') %>">
-                                                <!-- Table cell contents remain the same -->
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="status-indicator <%= employee.status === 'checked-in' ? 'online' : 'offline' %>"></div>
-                                                        <strong><%= employee.name %></strong>
-                                                    </div>
-                                                    <small class="text-muted"><%= employee.email %></small>
-                                                </td>
-                                                <td>
-                                                    <% if (employee.onLeave) { %>
-                                                        <span class="badge bg-info"><i class="fas fa-umbrella-beach"></i> On Leave</span>
-                                                    <% } else if (employee.status === 'checked-in') { %>
-                                                        <span class="badge bg-success"><i class="fas fa-check-circle"></i> Present</span>
-                                                    <% } else { %>
-                                                        <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-circle"></i> Not Checked In</span>
-                                                    <% } %>
-                                                </td>
-                                                <td>
-                                                    <% if (employee.checkInTime) { %>
-                                                        <span class="time"><i class="far fa-clock"></i> <%= employee.checkInTime %></span>
-                                                    <% } else { %>
-                                                        <span class="text-muted">N/A</span>
-                                                    <% } %>
-                                                </td>
-                                                <td>
-                                                    <% if (employee.checkInTime) { %>
-                                                        <span class="duration" data-checkin="<%= employee.checkInTime %>">
-                                                            <span class="hours">--</span>:<span class="minutes">--</span>
-                                                        </span>
-                                                    <% } else { %>
-                                                        <span class="text-muted">N/A</span>
-                                                    <% } %>
-                                                </td>
-                                                <td>
-                                                    <% if (!employee.status === 'checked-in' || employee.onLeave) { %>
-                                                        <span class="text-muted">N/A</span>
-                                                    <% } else if (employee.breakStatus === 'on-break') { %>
-                                                        <span class="badge bg-primary"><i class="fas fa-coffee"></i> On Break</span>
-                                                    <% } else if (employee.breakStatus === 'unavailable') { %>
-                                                        <span class="badge bg-secondary"><i class="fas fa-user-clock"></i> Unavailable</span>
-                                                    <% } else { %>
-                                                        <span class="badge bg-light text-dark"><i class="fas fa-briefcase"></i> Working</span>
-                                                    <% } %>
-                                                </td>
-                                                <td>
-                                                    <% if (employee.missing && !employee.onLeave) { %>
-                                                        <button class="btn btn-warning btn-sm send-reminder" data-employee-id="<%= employee.id %>">
-                                                            <i class="fas fa-bell"></i> Remind
-                                                        </button>
-                                                    <% } else if (employee.status === 'checked-in') { %>
-                                                        <button class="btn btn-primary btn-sm view-details" data-employee-id="<%= employee.id %>">
-                                                            <i class="fas fa-eye"></i> Details
-                                                        </button>
-                                                    <% } else { %>
-                                                        <span class="text-muted"><i class="fas fa-minus-circle"></i> No Action</span>
-                                                    <% } %>
-                                                </td>
-                                            </tr>
-                                        <% }); %>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <!-- Pagination for table view -->
-                            <div class="mt-3 d-flex justify-content-between">
-                                <div>
-                                    <select id="activityPageSize" class="form-select form-select-sm">
-                                        <option value="10">10 rows</option>
-                                        <option value="25">25 rows</option>
-                                        <option value="50">50 rows</option>
-                                        <option value="100">100 rows</option>
-                                    </select>
-                                </div>
-                                <nav aria-label="Activity pagination">
-                                    <ul class="pagination pagination-sm justify-content-end" id="activityPagination">
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                        </li>
-                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="#">Next</a>
-                                        </li>
-                                    </ul>
-                                </nav>
-                            </div>
-                        </div>
-                        
-                        <!-- Grid View -->
-                        <div class="tab-pane fade" id="gridView">
-                            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" id="employeeActivityGrid">
-                                <% employeeActivity.forEach(employee => { %>
-                                    <div class="col" 
-                                         data-status="<%= employee.onLeave ? 'leave' : (employee.status === 'checked-in' ? (employee.breakStatus === 'on-break' ? 'break' : 'present') : 'absent') %>">
-                                        <div class="card h-100 <%= employee.missing ? 'border-danger' : (employee.onLeave ? 'border-info' : (employee.breakStatus === 'on-break' ? 'border-primary' : 'border-success')) %>">
-                                            <div class="card-header <%= employee.missing ? 'bg-danger text-white' : (employee.onLeave ? 'bg-info text-white' : (employee.breakStatus === 'on-break' ? 'bg-primary text-white' : 'bg-success text-white')) %>">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <h6 class="mb-0"><%= employee.name %></h6>
-                                                    <% if (employee.onLeave) { %>
-                                                        <i class="fas fa-umbrella-beach"></i>
-                                                    <% } else if (employee.status === 'checked-in') { %>
-                                                        <i class="fas fa-check-circle"></i>
-                                                    <% } else { %>
-                                                        <i class="fas fa-exclamation-circle"></i>
-                                                    <% } %>
+            </div>
+            <div class="card-body">
+                <!-- Tabs for different views -->
+                <ul class="nav nav-tabs mb-3" id="activityViewTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="table-tab" data-bs-toggle="tab" href="#tableView">
+                            <i class="fas fa-table"></i> Table View
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="grid-tab" data-bs-toggle="tab" href="#gridView">
+                            <i class="fas fa-th"></i> Grid View
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="tab-content">
+                    <!-- Table View -->
+                    <div class="tab-pane fade show active" id="tableView">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="employeeActivityTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th><i class="fas fa-user"></i> Employee</th>
+                                        <th><i class="fas fa-info-circle"></i> Status</th>
+                                        <th><i class="fas fa-sign-in-alt"></i> Check-in</th>
+                                        <th><i class="fas fa-hourglass-half"></i> Duration</th>
+                                        <th><i class="fas fa-pause-circle"></i> Break Status</th>
+                                        <th><i class="fas fa-cogs"></i> Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activityTableBody">
+                                    <% employeeActivity.forEach(employee => { %>
+                                        <tr class="<%= employee.missing ? 'table-danger' : (employee.onLeave ? 'table-secondary' : (employee.breakStatus === 'on-break' ? 'table-info' : '')) %>"
+                                            data-status="<%= employee.onLeave ? 'leave' : (employee.status === 'checked-in' ? (employee.breakStatus === 'on-break' ? 'break' : 'present') : 'absent') %>">
+                                            <!-- Table cell contents remain the same -->
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="status-indicator <%= employee.status === 'checked-in' ? 'online' : 'offline' %>"></div>
+                                                    <strong><%= employee.name %></strong>
                                                 </div>
-                                            </div>
-                                            <div class="card-body">
-                                                <p class="card-text small"><i class="fas fa-envelope"></i> <%= employee.email %></p>
-                                                <p class="card-text">
-                                                    <strong>Status:</strong>
-                                                    <% if (employee.onLeave) { %>
-                                                        On Leave
-                                                    <% } else if (employee.status === 'checked-in') { %>
-                                                        Present
-                                                    <% } else { %>
-                                                        Not Checked In
-                                                    <% } %>
-                                                </p>
-                                                
+                                                <small class="text-muted"><%= employee.email %></small>
+                                            </td>
+                                            <td>
+                                                <% if (employee.onLeave) { %>
+                                                    <span class="badge bg-info"><i class="fas fa-umbrella-beach"></i> On Leave</span>
+                                                <% } else if (employee.status === 'checked-in') { %>
+                                                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> Present</span>
+                                                <% } else { %>
+                                                    <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-circle"></i> Not Checked In</span>
+                                                <% } %>
+                                            </td>
+                                            <td>
                                                 <% if (employee.checkInTime) { %>
-                                                    <p class="card-text">
-                                                        <strong>Check-in:</strong> <%= employee.checkInTime %>
-                                                        <br>
-                                                        <strong>Duration:</strong> 
-                                                        <span class="duration" data-checkin="<%= employee.checkInTime %>">
-                                                            <span class="hours">--</span>:<span class="minutes">--</span>
-                                                        </span>
-                                                    </p>
+                                                    <span class="time"><i class="far fa-clock"></i> <%= employee.checkInTime %></span>
+                                                <% } else { %>
+                                                    <span class="text-muted">N/A</span>
                                                 <% } %>
-                                                
-                                                <% if (employee.status === 'checked-in') { %>
-                                                    <p class="card-text">
-                                                        <strong>Activity:</strong>
-                                                        <% if (employee.breakStatus === 'on-break') { %>
-                                                            <span class="badge bg-primary"><i class="fas fa-coffee"></i> On Break</span>
-                                                        <% } else if (employee.breakStatus === 'unavailable') { %>
-                                                            <span class="badge bg-secondary"><i class="fas fa-user-clock"></i> Unavailable</span>
-                                                        <% } else { %>
-                                                            <span class="badge bg-light text-dark"><i class="fas fa-briefcase"></i> Working</span>
-                                                        <% } %>
-                                                    </p>
+                                            </td>
+                                            <td>
+                                                <% if (employee.checkInTime) { %>
+                                                    <span class="duration" data-checkin="<%= employee.checkInTime %>">
+                                                        <span class="hours">--</span>:<span class="minutes">--</span>
+                                                    </span>
+                                                <% } else { %>
+                                                    <span class="text-muted">N/A</span>
                                                 <% } %>
-                                            </div>
-                                            <div class="card-footer">
+                                            </td>
+                                            <td>
+                                                <% if (!employee.status === 'checked-in' || employee.onLeave) { %>
+                                                    <span class="text-muted">N/A</span>
+                                                <% } else if (employee.breakStatus === 'on-break') { %>
+                                                    <span class="badge bg-primary"><i class="fas fa-coffee"></i> On Break</span>
+                                                <% } else if (employee.breakStatus === 'unavailable') { %>
+                                                    <span class="badge bg-secondary"><i class="fas fa-user-clock"></i> Unavailable</span>
+                                                <% } else { %>
+                                                    <span class="badge bg-light text-dark"><i class="fas fa-briefcase"></i> Working</span>
+                                                <% } %>
+                                            </td>
+                                            <td>
                                                 <% if (employee.missing && !employee.onLeave) { %>
-                                                    <button class="btn btn-warning btn-sm w-100 send-reminder" data-employee-id="<%= employee.id %>">
-                                                        <i class="fas fa-bell"></i> Send Reminder
+                                                    <button class="btn btn-warning btn-sm send-reminder" data-employee-id="<%= employee.id %>">
+                                                        <i class="fas fa-bell"></i> Remind
                                                     </button>
                                                 <% } else if (employee.status === 'checked-in') { %>
-                                                    <button class="btn btn-primary btn-sm w-100 view-details" data-employee-id="<%= employee.id %>">
-                                                        <i class="fas fa-eye"></i> View Details
+                                                    <button class="btn btn-primary btn-sm view-details" data-employee-id="<%= employee.id %>">
+                                                        <i class="fas fa-eye"></i> Details
                                                     </button>
                                                 <% } else { %>
-                                                    <button class="btn btn-secondary btn-sm w-100" disabled>
-                                                        <i class="fas fa-minus-circle"></i> No Action
-                                                    </button>
+                                                    <span class="text-muted"><i class="fas fa-minus-circle"></i> No Action</span>
                                                 <% } %>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <% }); %>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination for table view -->
+                        <div class="mt-3 d-flex justify-content-between">
+                            <div>
+                                <select id="activityPageSize" class="form-select form-select-sm">
+                                    <option value="10">10 rows</option>
+                                    <option value="25">25 rows</option>
+                                    <option value="50">50 rows</option>
+                                    <option value="100">100 rows</option>
+                                </select>
                             </div>
-                            
-                            <!-- Pagination for grid view -->
-                            <nav aria-label="Activity grid pagination" class="mt-3">
-                                <ul class="pagination pagination-sm justify-content-center" id="gridPagination">
-                                    <li class="page-item" id="gridPrevPage">
+                            <nav aria-label="Activity pagination">
+                                <ul class="pagination pagination-sm justify-content-end" id="activityPagination">
+                                    <li class="page-item disabled">
                                         <a class="page-link" href="#" tabindex="-1">Previous</a>
                                     </li>
-                                    <div id="gridPageNumbers" class="d-flex">
-                                        <!-- Page numbers will be inserted here dynamically -->
-                                    </div>
-                                    <li class="page-item" id="gridNextPage">
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
                                         <a class="page-link" href="#">Next</a>
                                     </li>
                                 </ul>
                             </nav>
                         </div>
                     </div>
+                    
+                    <!-- Grid View -->
+                    <div class="tab-pane fade" id="gridView">
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" id="employeeActivityGrid">
+                            <% employeeActivity.forEach(employee => { %>
+                                <div class="col" 
+                                     data-status="<%= employee.onLeave ? 'leave' : (employee.status === 'checked-in' ? (employee.breakStatus === 'on-break' ? 'break' : 'present') : 'absent') %>">
+                                    <div class="card h-100 <%= employee.missing ? 'border-danger' : (employee.onLeave ? 'border-info' : (employee.breakStatus === 'on-break' ? 'border-primary' : 'border-success')) %>">
+                                        <div class="card-header <%= employee.missing ? 'bg-danger text-white' : (employee.onLeave ? 'bg-info text-white' : (employee.breakStatus === 'on-break' ? 'bg-primary text-white' : 'bg-success text-white')) %>">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0"><%= employee.name %></h6>
+                                                <% if (employee.onLeave) { %>
+                                                    <i class="fas fa-umbrella-beach"></i>
+                                                <% } else if (employee.status === 'checked-in') { %>
+                                                    <i class="fas fa-check-circle"></i>
+                                                <% } else { %>
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text small"><i class="fas fa-envelope"></i> <%= employee.email %></p>
+                                            <p class="card-text">
+                                                <strong>Status:</strong>
+                                                <% if (employee.onLeave) { %>
+                                                    On Leave
+                                                <% } else if (employee.status === 'checked-in') { %>
+                                                    Present
+                                                <% } else { %>
+                                                    Not Checked In
+                                                <% } %>
+                                            </p>
+                                            
+                                            <% if (employee.checkInTime) { %>
+                                                <p class="card-text">
+                                                    <strong>Check-in:</strong> <%= employee.checkInTime %>
+                                                    <br>
+                                                    <strong>Duration:</strong> 
+                                                    <span class="duration" data-checkin="<%= employee.checkInTime %>">
+                                                        <span class="hours">--</span>:<span class="minutes">--</span>
+                                                    </span>
+                                                </p>
+                                            <% } %>
+                                            
+                                            <% if (employee.status === 'checked-in') { %>
+                                                <p class="card-text">
+                                                    <strong>Activity:</strong>
+                                                    <% if (employee.breakStatus === 'on-break') { %>
+                                                        <span class="badge bg-primary"><i class="fas fa-coffee"></i> On Break</span>
+                                                    <% } else if (employee.breakStatus === 'unavailable') { %>
+                                                        <span class="badge bg-secondary"><i class="fas fa-user-clock"></i> Unavailable</span>
+                                                    <% } else { %>
+                                                        <span class="badge bg-light text-dark"><i class="fas fa-briefcase"></i> Working</span>
+                                                    <% } %>
+                                                </p>
+                                            <% } %>
+                                        </div>
+                                        <div class="card-footer">
+                                            <% if (employee.missing && !employee.onLeave) { %>
+                                                <button class="btn btn-warning btn-sm w-100 send-reminder" data-employee-id="<%= employee.id %>">
+                                                    <i class="fas fa-bell"></i> Send Reminder
+                                                </button>
+                                            <% } else if (employee.status === 'checked-in') { %>
+                                                <button class="btn btn-primary btn-sm w-100 view-details" data-employee-id="<%= employee.id %>">
+                                                    <i class="fas fa-eye"></i> View Details
+                                                </button>
+                                            <% } else { %>
+                                                <button class="btn btn-secondary btn-sm w-100" disabled>
+                                                    <i class="fas fa-minus-circle"></i> No Action
+                                                </button>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                        
+                        <!-- Pagination for grid view -->
+                        <nav aria-label="Activity grid pagination" class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center" id="gridPagination">
+                                <li class="page-item" id="gridPrevPage">
+                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                </li>
+                                <div id="gridPageNumbers" class="d-flex">
+                                    <!-- Page numbers will be inserted here dynamically -->
+                                </div>
+                                <li class="page-item" id="gridNextPage">
+                                    <a class="page-link" href="#">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
-        
-        <!-- User Management Section -->
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-users-cog"></i> User Management</h5>
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                    <i class="fas fa-user-plus"></i> Add New User
-                </button>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover" id="usersTable">
-                        <thead class="table-dark">
-                            <tr>
-                                <th><i class="fas fa-id-badge"></i> Username</th>
-                                <th><i class="fas fa-user"></i> Full Name</th>
-                                <th><i class="fas fa-user-tag"></i> Role</th>
-                                <th><i class="fas fa-clock"></i> Status</th>
-                                <th><i class="fas fa-cogs"></i> Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% if (typeof users !== 'undefined' && users.length > 0) { %>
-                                <% users.forEach(user => { %>
-                                    <tr>
-                                        <td><%= user.username %></td>
-                                        <td><%= user.name %></td>
-                                        <td>
-                                            <span class="badge <%= user.role === 'admin' ? 'bg-danger' : 'bg-info' %>">
-                                                <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge <%= user.active ? 'bg-success' : 'bg-secondary' %>">
-                                                <%= user.active ? 'Active' : 'Inactive' %>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-info btn-sm edit-user" data-user-id="<%= user.id %>">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm delete-user" data-user-id="<%= user.id %>">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <% }) %>
-                            <% } else { %>
-                                <tr>
-                                    <td colspan="5" class="text-center">No users found</td>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
+
+    <!-- User Management Section - Cleaner Layout -->
+<div class="card mb-4">
+    <div class="card-header bg-dark text-white">
+        <div class="row align-items-center">
+            <div class="col-md-4 mb-2 mb-md-0">
+                <h5 class="mb-0"><i class="fas fa-users-cog"></i> User Management</h5>
+            </div>
+            <div class="col-md-8">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                    <div class="input-group input-group-sm" style="max-width: 250px;">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="userSearchInput" class="form-control" placeholder="Search users...">
+                    </div>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="fas fa-user-plus"></i> Add User
+                    </button>
+                    <button class="btn btn-sm btn-success" id="exportUsersCsv">
+                        <i class="fas fa-file-export"></i> Export
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Filter Controls - Improved Layout -->
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-9">
+                <div class="d-flex flex-wrap gap-2">
+                    <div style="min-width: 120px;">
+                        <label for="userRoleFilter" class="form-label small mb-1">Role</label>
+                        <select class="form-select form-select-sm" id="userRoleFilter">
+                            <option value="all">All Roles</option>
+                            <option value="admin">Admin</option>
+                            <option value="employee">Employee</option>
+                        </select>
+                    </div>
+                    <div style="min-width: 120px;">
+                        <label for="userStatusFilter" class="form-label small mb-1">Status</label>
+                        <select class="form-select form-select-sm" id="userStatusFilter">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div style="min-width: 150px;">
+                        <label for="userDepartmentFilter" class="form-label small mb-1">Department</label>
+                        <select class="form-select form-select-sm" id="userDepartmentFilter">
+                            <option value="all">All Departments</option>
+                            <!-- Department options will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="userSortBy" class="form-label small mb-1">Sort By</label>
+                <select class="form-select form-select-sm" id="userSortBy">
+                    <option value="name">Sort by Name</option>
+                    <option value="username">Sort by Username</option>
+                    <option value="role">Sort by Role</option>
+                    <option value="status">Sort by Status</option>
+                </select>
+            </div>
+        </div>
 
-<!-- Add User Modal -->
+        <!-- User Table -->
+        <div class="table-responsive">
+            <table class="table table-hover" id="usersTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th><input type="checkbox" id="selectAllUsers" class="form-check-input"></th>
+                        <th><i class="fas fa-id-badge"></i> Username</th>
+                        <th><i class="fas fa-user"></i> Full Name</th>
+                        <th><i class="fas fa-envelope"></i> Email</th>
+                        <th><i class="fas fa-user-tag"></i> Role</th>
+                        <th><i class="fas fa-sitemap"></i> Department</th>
+                        <th><i class="fas fa-clock"></i> Status</th>
+                        <th><i class="fas fa-calendar"></i> Last Login</th>
+                        <th><i class="fas fa-cogs"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (typeof users !== 'undefined' && users.length > 0) { %>
+                        <% users.forEach(user => { %>
+                            <tr data-user-id="<%= user.id %>" data-role="<%= user.role %>" data-status="<%= user.active ? 'active' : 'inactive' %>">
+                                <td><input type="checkbox" class="user-select form-check-input"></td>
+                                <td><%= user.username %></td>
+                                <td><%= user.name %></td>
+                                <td><%= user.email %></td>
+                                <td>
+                                    <span class="badge <%= user.role === 'admin' ? 'bg-danger' : 'bg-info' %>">
+                                        <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>
+                                    </span>
+                                </td>
+                                <td><%= user.department || 'Not Assigned' %></td>
+                                <td>
+                                    <span class="badge <%= user.active ? 'bg-success' : 'bg-secondary' %>">
+                                        <%= user.active ? 'Active' : 'Inactive' %>
+                                    </span>
+                                </td>
+                                <td><%= user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never' %></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-info edit-user" 
+                                                data-user-id="<%= user.id %>"
+                                                data-username="<%= user.username %>"
+                                                data-name="<%= user.name %>"
+                                                data-email="<%= user.email %>"
+                                                data-role="<%= user.role %>"
+                                                data-active="<%= user.active ? 'active' : 'inactive' %>">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-warning reset-password" data-user-id="<%= user.id %>" data-user-name="<%= user.name %>">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        <button class="btn btn-danger delete-user" data-user-id="<%= user.id %>" data-user-name="<%= user.name %>">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="9" class="text-center">No users found</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Actions and Pagination -->
+        <div class="row mt-3 align-items-center">
+            <div class="col-md-6 mb-2 mb-md-0">
+                <div class="btn-group" id="bulkActionDropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                        <i class="fas fa-tasks"></i> Bulk Actions
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item bulk-activate" href="#"><i class="fas fa-toggle-on"></i> Activate</a></li>
+                        <li><a class="dropdown-item bulk-deactivate" href="#"><i class="fas fa-toggle-off"></i> Deactivate</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item bulk-delete text-danger" href="#"><i class="fas fa-trash"></i> Delete</a></li>
+                    </ul>
+                </div>
+                <span class="ms-3 text-muted small" id="selectedCount">0 users selected</span>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-md-end align-items-center">
+                    <div class="me-3">
+                        <select id="userPageSize" class="form-select form-select-sm">
+                            <option value="10">10 rows</option>
+                            <option value="25">25 rows</option>
+                            <option value="50">50 rows</option>
+                            <option value="100">100 rows</option>
+                        </select>
+                    </div>
+                    <nav aria-label="User table pagination">
+                        <ul class="pagination pagination-sm mb-0" id="usersPagination">
+                            <!-- Pagination will be generated dynamically -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Replace the existing Add User Modal with this enhanced version -->
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -433,24 +540,39 @@
             </div>
             <form id="addUserForm">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="fullName" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="fullName" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="fullName" required>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
                         <input type="email" class="form-control" id="email" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="role" class="form-label">Role</label>
-                        <select class="form-select" id="role" required>
-                            <option value="employee">Employee</option>
-                            <option value="admin">Admin</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select class="form-select" id="role" required>
+                                <option value="employee">Employee</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="department" class="form-label">Department</label>
+                            <select class="form-select" id="department">
+                                <option value="">Select Department</option>
+                                <option value="HR">Human Resources</option>
+                                <option value="IT">IT Department</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Sales">Sales</option>
+                                <option value="Marketing">Marketing</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Initial Password</label>
@@ -459,7 +581,15 @@
                             <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                 <i class="fas fa-eye"></i>
                             </button>
+                            <button class="btn btn-outline-primary" type="button" id="generatePassword">
+                                <i class="fas fa-key"></i> Generate
+                            </button>
                         </div>
+                        <div class="form-text">Password must be at least 8 characters with letters, numbers, and symbols.</div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="sendWelcomeEmail" checked>
+                        <label class="form-check-label" for="sendWelcomeEmail">Send welcome email with login details</label>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -470,7 +600,89 @@
         </div>
     </div>
 </div>
-    <!-- Page specific scripts -->
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel"><i class="fas fa-user-edit"></i> Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editUserForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editUserId">
+                    <div class="mb-3">
+                        <label for="editUsername" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="editUsername" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editFullName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="editFullName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRole" class="form-label">Role</label>
+                        <select class="form-select" id="editRole" required>
+                            <option value="employee">Employee</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStatus" class="form-label">Status</label>
+                        <select class="form-select" id="editStatus" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="resetPassword">
+                        <label class="form-check-label" for="resetPassword">Reset Password</label>
+                    </div>
+                    <div class="mb-3 password-reset-fields" style="display: none;">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPassword">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleEditPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteUserModalLabel"><i class="fas fa-exclamation-triangle"></i> Delete User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete user <strong id="deleteUserName"></strong>?</p>
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+                <input type="hidden" id="deleteUserId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
     <script src="/js/admin-client.js"></script>
-</body>
-</html>
+</div>
+

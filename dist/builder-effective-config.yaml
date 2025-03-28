@@ -1,0 +1,25 @@
+directories:
+  output: dist
+  buildResources: build
+appId: McCullaghLABS.timemanager
+productName: TimeManager
+files:
+  - filter:
+      - '**/*'
+      - '!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,suo,xproj}'
+      - '!**/._*'
+      - '!data/**/*'
+asarUnpack:
+  - node_modules/sqlite3/**/*
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  icon: public/img/logo.ico
+mac:
+  target: null
+electronVersion: 35.0.3
